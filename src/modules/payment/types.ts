@@ -1,0 +1,23 @@
+export type PaymentFormPayload = {
+  AMOUNT: string;
+  CURRENCY: string;
+  ORDER: string;
+  DESC: string;
+  MERCHANT: string;
+  MERCH_NAME: string;
+  MERCH_URL: string;
+  COUNTRY: string;
+  BRANDS: string;
+  TERMINAL: string;
+  TIMESTAMP: string;
+  MERCH_GMT: string;
+  TRTYPE: string;
+  BACKREF: string;
+  LANG: string;
+  NONCE: string;
+  P_SIGN: string;
+  MK_TOKEN: string;
+  NOTIFY_URL: string;
+  CLIENT_IP: string;
+  M_INFO: string;
+};
