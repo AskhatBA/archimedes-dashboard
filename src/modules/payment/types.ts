@@ -1,23 +1,20 @@
-export type PaymentFormPayload = {
-  AMOUNT: string;
-  CURRENCY: string;
-  ORDER: string;
-  DESC: string;
-  MERCHANT: string;
-  MERCH_NAME: string;
-  MERCH_URL: string;
-  COUNTRY: string;
-  BRANDS: string;
-  TERMINAL: string;
-  TIMESTAMP: string;
-  MERCH_GMT: string;
-  TRTYPE: string;
-  BACKREF: string;
-  LANG: string;
-  NONCE: string;
-  P_SIGN: string;
-  MK_TOKEN: string;
-  NOTIFY_URL: string;
-  CLIENT_IP: string;
-  M_INFO: string;
+export type InitPaymentBody = {
+  amount: number;
+  description?: string;
+};
+
+export type InitPaymentResponse = {
+  paymentId: string;
+  paymentUrl: string;
+};
+
+export type PaymentStatus = 'PENDING' | 'SUCCESS' | 'FAILED';
+
+export type Payment = {
+  id: string;
+  amount: number;
+  description: string;
+  status: PaymentStatus;
+  pgPaymentId: string | null;
+  createdAt: string;
 };

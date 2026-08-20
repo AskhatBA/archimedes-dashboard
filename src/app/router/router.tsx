@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { OverviewScreen } from '@/screens/overview';
 import { PaymentScreen } from '@/screens/payment';
+import { PaymentResultScreen } from '@/screens/payment-result';
 import { SignInScreen } from '@/screens/sign-in';
 import { useAuthStore } from '@/shared/lib';
 
@@ -13,6 +14,9 @@ export const AppRouter = () => (
   <Routes>
     <Route path="/sign-in" element={<SignInScreen />} />
     <Route path="/payment" element={<PaymentScreen />} />
+    {/* FreedomPay sends the payer back here with pg_order_id in the query string. */}
+    <Route path="/payment/success" element={<PaymentResultScreen outcome="success" />} />
+    <Route path="/payment/failure" element={<PaymentResultScreen outcome="failure" />} />
     <Route
       path="/"
       element={
