@@ -1,38 +1,23 @@
 import { useQuery } from '@tanstack/react-query';
-import {
-  mockAppVersions,
-  mockAppointmentTrend,
-  mockKpis,
-  mockNotificationStats,
-  mockPlatformDistribution,
-  mockRecentAppointments,
-  mockRecentRefunds,
-  mockRefundTrend,
-  mockRoleDistribution,
-  mockStatusDistribution,
-  mockTelemedicineSplit,
-  mockTopDoctors,
-} from '../data';
+import { axiosInstance } from '@/api';
+import type { OverviewStats, OverviewStatsResponse } from '../types';
 
-const delay = <T>(value: T, ms = 250) =>
-  new Promise<T>((r) => setTimeout(() => r(value), ms));
-
+/**
+ * Overview counters. The endpoint is role-gated on the backend, so a non-admin token
+ * gets a 403 here — which the axios interceptor turns into a logout.
+ */
 export const useDashboard = () =>
-  useQuery({
-    queryKey: ['dashboard', 'all'],
-    queryFn: () =>
-      delay({
-        kpis: mockKpis,
-        appointmentTrend: mockAppointmentTrend,
-        roleDistribution: mockRoleDistribution,
-        statusDistribution: mockStatusDistribution,
-        platformDistribution: mockPlatformDistribution,
-        telemedicineSplit: mockTelemedicineSplit,
-        refundTrend: mockRefundTrend,
-        topDoctors: mockTopDoctors,
-        recentAppointments: mockRecentAppointments,
-        recentRefunds: mockRecentRefunds,
-        notificationStats: mockNotificationStats,
-        appVersions: mockAppVersions,
-      }),
+  useQuery<OverviewStats>({
+    queryKey: ['dashboard', 'overview'],
+    queryFn: async () => {
+      const { data } = await axiosInstance.get<OverviewStatsResponse>('/stats/overview');
+
+      return {
+        totalPatients: data.totalPatients,
+        totalRefundRequests: data.totalRefundRequests,
+        acceptedRefunds: data.acceptedRefunds,
+        totalAppointments: data.totalAppointments,
+        appointmentsToday: data.appointmentsToday,
+      };
+    },
   });
