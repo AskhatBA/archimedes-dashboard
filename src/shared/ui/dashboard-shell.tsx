@@ -55,7 +55,7 @@ type NavItem = {
 
 const navItems: NavItem[] = [
   { label: 'Обзор', icon: IconLayoutDashboard, to: '/' },
-  { label: 'Пациенты', icon: IconUserHeart },
+  { label: 'Пациенты', icon: IconUserHeart, to: '/patients' },
   { label: 'Врачи', icon: IconStethoscope },
   { label: 'Приёмы', icon: IconCalendarStats, badge: '247' },
   { label: 'Страховые возмещения', icon: IconCash, to: '/refunds' },
