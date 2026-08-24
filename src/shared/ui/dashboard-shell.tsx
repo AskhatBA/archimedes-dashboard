@@ -35,6 +35,7 @@ import {
   IconUserHeart,
   IconUsers,
 } from '@tabler/icons-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/lib';
 
@@ -66,11 +67,20 @@ export const DashboardShell = ({ title, subtitle, children }: Props) => {
   const [opened, { toggle }] = useDisclosure();
   const { colorScheme, toggleColorScheme } = useMantineColorScheme();
   const logout = useAuthStore((s) => s.logout);
+  const user = useAuthStore((s) => s.user);
+  const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const email = user?.email ?? '';
+  // Two letters from the local part of the email, e.g. admin@… -> AD.
+  const initials = (email.slice(0, 2) || 'AD').toUpperCase();
 
   const handleLogout = () => {
     logout();
-    navigate('/sign-in');
+    // Without this the next admin to sign in on this machine would briefly see
+    // the previous session's cached data.
+    queryClient.clear();
+    navigate('/sign-in', { replace: true });
   };
 
   return (
@@ -151,14 +161,14 @@ export const DashboardShell = ({ title, subtitle, children }: Props) => {
               <Menu.Target>
                 <Group gap={8} style={{ cursor: 'pointer' }}>
                   <Avatar color="violet" radius="xl" size={34}>
-                    AD
+                    {initials}
                   </Avatar>
                   <Stack gap={0} visibleFrom="sm">
                     <Text size="sm" fw={600} lh={1}>
                       Админ
                     </Text>
                     <Text size="xs" c="dimmed">
-                      admin@archimedes.kz
+                      {email}
                     </Text>
                   </Stack>
                   <IconChevronDown size={14} />

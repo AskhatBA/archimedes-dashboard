@@ -1,39 +1,15 @@
-import { useFormik } from 'formik';
-import * as yup from 'yup';
-import { useNavigate } from 'react-router-dom';
-import {
-  Anchor,
-  Box,
-  Button,
-  Card,
-  Group,
-  PasswordInput,
-  Stack,
-  Text,
-  TextInput,
-  Title,
-} from '@mantine/core';
+import { Navigate } from 'react-router-dom';
+import { Box, Card, Group, Stack, Text, Title } from '@mantine/core';
 import { IconActivityHeartbeat } from '@tabler/icons-react';
-import { useAuthStore } from '@/shared/lib';
-
-const schema = yup.object({
-  email: yup.string().email('Некорректный email').required('Обязательное поле'),
-  password: yup.string().min(6, 'Минимум 6 символов').required('Обязательное поле'),
-});
+import { SignInForm, useAdminSession } from '@/modules/auth';
 
 export const SignInScreen = () => {
-  const setToken = useAuthStore((s) => s.setToken);
-  const navigate = useNavigate();
+  const { isAuthenticated } = useAdminSession();
 
-  const formik = useFormik({
-    initialValues: { email: '', password: '' },
-    validationSchema: schema,
-    onSubmit: async (values) => {
-      console.log('sign in', values);
-      setToken('demo-token');
-      navigate('/');
-    },
-  });
+  // Someone who is already signed in has no business on the login page.
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
     <Box
@@ -73,46 +49,10 @@ export const SignInScreen = () => {
           <Stack gap={4}>
             <Title order={3}>Вход</Title>
             <Text size="sm" c="dimmed">
-              С возвращением. Пожалуйста, введите ваши данные.
+              Панель администратора. Доступ только по служебной учётной записи.
             </Text>
           </Stack>
-          <form onSubmit={formik.handleSubmit}>
-            <Stack gap="md">
-              <TextInput
-                label="Email"
-                name="email"
-                placeholder="you@archimedes.kz"
-                value={formik.values.email}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.email && formik.errors.email}
-              />
-              <PasswordInput
-                label="Пароль"
-                name="password"
-                placeholder="Ваш пароль"
-                value={formik.values.password}
-                onChange={formik.handleChange}
-                onBlur={formik.handleBlur}
-                error={formik.touched.password && formik.errors.password}
-              />
-              <Group justify="space-between">
-                <Anchor size="sm" c="violet">
-                  Забыли пароль?
-                </Anchor>
-              </Group>
-              <Button
-                type="submit"
-                loading={formik.isSubmitting}
-                fullWidth
-                color="violet"
-                radius="md"
-                size="md"
-              >
-                Войти
-              </Button>
-            </Stack>
-          </form>
+          <SignInForm />
         </Stack>
       </Card>
     </Box>

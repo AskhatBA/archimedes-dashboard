@@ -1,13 +1,33 @@
+import { Center, Loader, Stack, Text } from '@mantine/core';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { OverviewScreen } from '@/screens/overview';
 import { PaymentScreen } from '@/screens/payment';
 import { PaymentResultScreen } from '@/screens/payment-result';
 import { SignInScreen } from '@/screens/sign-in';
-import { useAuthStore } from '@/shared/lib';
+import { useAdminSession } from '@/modules/auth';
 
+/**
+ * Gates a route on a *verified* admin session. The stored token alone is not
+ * enough — it is re-checked against `/auth/admin/me`, which only an ADMIN
+ * account passes, so a token from the mobile app never reaches the dashboard.
+ */
 const Protected = ({ children }: { children: React.ReactNode }) => {
-  const token = useAuthStore((s) => s.token);
-  return token ? <>{children}</> : <Navigate to="/sign-in" replace />;
+  const { isAuthenticated, isChecking } = useAdminSession();
+
+  if (isChecking) {
+    return (
+      <Center h="100svh">
+        <Stack align="center" gap="sm">
+          <Loader color="violet" />
+          <Text size="sm" c="dimmed">
+            Проверяем доступ…
+          </Text>
+        </Stack>
+      </Center>
+    );
+  }
+
+  return isAuthenticated ? <>{children}</> : <Navigate to="/sign-in" replace />;
 };
 
 export const AppRouter = () => (

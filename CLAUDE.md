@@ -46,7 +46,10 @@ screens → modules → shared / api
 
 - All server state goes through `@tanstack/react-query`. The shared client is at `src/shared/lib/query-client.ts` (60s `staleTime`, `refetchOnWindowFocus: false`, `retry: 1`).
 - All HTTP requests use `axiosInstance` from `src/api/`. Don't import `axios` directly — go through the instance so the auth interceptor applies.
-- Auth state is held in `useAuthStore` (zustand + `persist` middleware, key `auth-store`). Setting `token` here is what flips `Protected` routes from redirecting to rendering.
+- Auth state is held in `useAuthStore` (zustand + `persist` middleware, key `auth-store`): `token`, `refreshToken` and the signed-in `user`.
+- **Sign-in is admin-only.** `src/modules/auth` posts email + password to `POST /auth/admin/login`; the backend rejects anything that is not an `ADMIN` account. The stored token alone does *not* open a route — `Protected` (in `app/router/router.tsx`) calls `useAdminSession`, which re-checks the token against `GET /auth/admin/me`. That endpoint is role-gated, so a patient's mobile token gets 403 and is bounced to `/sign-in`. Never gate a route on `token` presence alone.
+- `axiosInstance` has a response interceptor that clears the session on any 401/403 (except the login call itself), so a dead token is never left in storage.
+- There is no sign-up screen and there must not be one — the single admin account is provisioned on the backend with `npm run db:create-admin`.
 - Forms use `formik` + `yup`. See `src/screens/sign-in/ui/sign-in-screen.tsx` for the canonical pattern.
 
 ## Conventions
