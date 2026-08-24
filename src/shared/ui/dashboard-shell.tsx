@@ -36,7 +36,7 @@ import {
   IconUsers,
 } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/shared/lib';
 
 type Props = {
@@ -48,16 +48,17 @@ type Props = {
 type NavItem = {
   label: string;
   icon: typeof IconLayoutDashboard;
-  active?: boolean;
+  /** Items without a `to` are not built yet — they render disabled rather than 404. */
+  to?: string;
   badge?: string;
 };
 
 const navItems: NavItem[] = [
-  { label: 'Обзор', icon: IconLayoutDashboard, active: true },
+  { label: 'Обзор', icon: IconLayoutDashboard, to: '/' },
   { label: 'Пациенты', icon: IconUserHeart },
   { label: 'Врачи', icon: IconStethoscope },
   { label: 'Приёмы', icon: IconCalendarStats, badge: '247' },
-  { label: 'Страховые возмещения', icon: IconCash },
+  { label: 'Страховые возмещения', icon: IconCash, to: '/refunds' },
   { label: 'Уведомления', icon: IconBell, badge: '12' },
   { label: 'Версии приложения', icon: IconDeviceMobile },
   { label: 'Пользователи', icon: IconUsers },
@@ -70,6 +71,7 @@ export const DashboardShell = ({ title, subtitle, children }: Props) => {
   const user = useAuthStore((s) => s.user);
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+  const { pathname } = useLocation();
 
   const email = user?.email ?? '';
   // Two letters from the local part of the email, e.g. admin@… -> AD.
@@ -198,7 +200,18 @@ export const DashboardShell = ({ title, subtitle, children }: Props) => {
             {navItems.map((item) => (
               <NavLink
                 key={item.label}
-                active={item.active}
+                active={item.to === pathname}
+                disabled={!item.to}
+                onClick={() => {
+                  if (item.to) {
+                    navigate(item.to);
+                    // On mobile the navbar is an overlay — leaving it open would cover
+                    // the page the admin just navigated to.
+                    if (opened) {
+                      toggle();
+                    }
+                  }
+                }}
                 label={item.label}
                 leftSection={<item.icon size={18} stroke={1.6} />}
                 rightSection={

@@ -2,6 +2,7 @@ import { Center, Loader, Stack, Text } from '@mantine/core';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { OverviewScreen } from '@/screens/overview';
 import { PaymentScreen } from '@/screens/payment';
+import { RefundsScreen } from '@/screens/refunds';
 import { PaymentResultScreen } from '@/screens/payment-result';
 import { SignInScreen } from '@/screens/sign-in';
 import { useAdminSession } from '@/modules/auth';
@@ -42,6 +43,14 @@ export const AppRouter = () => (
       element={
         <Protected>
           <OverviewScreen />
+        </Protected>
+      }
+    />
+    <Route
+      path="/refunds"
+      element={
+        <Protected>
+          <RefundsScreen />
         </Protected>
       }
     />
