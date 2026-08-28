@@ -52,10 +52,51 @@ screens → modules → shared / api
 - There is no sign-up screen and there must not be one — the single admin account is provisioned on the backend with `npm run db:create-admin`.
 - Forms use `formik` + `yup`. See `src/screens/sign-in/ui/sign-in-screen.tsx` for the canonical pattern.
 
+### Check-ups module
+
+`src/modules/checkups` is the catalogue editor for the mobile app's check-up tab. It is the
+first module with write access, so it sets the pattern: one `useQuery` for the listing plus
+`useMutation` hooks that all invalidate the same `['checkups']` key, so the table never shows
+a row the server has already changed.
+
+- The listing reads `GET /checkups/admin`, which — unlike the app-facing `GET /checkups` —
+  also returns unpublished entries. Every write endpoint (`POST /checkups/admin`,
+  `PATCH /checkups/admin/:id`, `DELETE /checkups/admin/:id`) is role-gated to `ADMIN` on the
+  backend and audited there.
+- Publishing is a `isActive` flag, not a delete: the row switch flips it with a `PATCH`, and
+  the delete modal says so, because an unpublished check-up keeps working for anything that
+  already links to it while a deleted one does not.
+- `code` is a slug the backend enforces as unique — a collision comes back as `409`
+  `CHECKUP_CODE_TAKEN`. `resolveCheckupErrorMessage` (in `data.ts`) turns that, and
+  express-validator's `errors` array, into the message shown in the form.
+- Services are edited as free text, one per line; `parseServices` also splits on `;` so a
+  cell from the clinic's price list can be pasted in as-is.
+
+### Paid-programs orders module
+
+`src/modules/program-orders` is the operator queue for what patients buy on the mobile
+app's paid-programs screen. Unlike the check-ups module it is not a catalogue editor: an
+order is created by the backend when a payment settles, so the dashboard can move it
+along but never create or delete one.
+
+- The listing reads `GET /program-orders/admin` — paginated and filtered server-side
+  (status, category, date range, and a search that matches patient name / IIN / phone or
+  a program title inside the order). `totalAmount` covers the whole filtered set, not the
+  visible page, which is what the summary tiles show.
+- The "Ждут обработки" tile is a *separate* query pinned to `status=NEW` with `limit=1`,
+  read only for its `total`: it is the queue an operator works down, so narrowing the
+  table must not change it.
+- `PATCH /program-orders/admin/:id` is the only write, and only `status` and `comment`
+  go through it — amounts and the programs in an order belong to the payment behind it
+  and are immutable by design. The mutation invalidates the whole `['program-orders']`
+  key so the table and the counter both follow.
+- The details drawer's editor is mounted under `key={order.id}` so its local state is
+  rebuilt per order — otherwise a half-typed note would follow the admin to the next row.
+
 ## Conventions
 
 - **Path alias**: `@/` resolves to `src/` (configured in both `vite.config.ts` and `tsconfig.app.json`). Prefer `@/modules/foo` over deep relative paths.
 - **File naming**: kebab-case for files and folders (`metrics-chart.tsx`, `use-metrics.ts`, `sign-in-screen.tsx`).
 - **Dates**: use `dayjs` — already a dependency.
-- **No UI/styling library is installed.** Existing components use inline `style={{}}` props as placeholders. When adding one (Tailwind, MUI, etc.), do it explicitly rather than reaching for arbitrary CSS.
+- **UI is Mantine** (`@mantine/core`, `@mantine/hooks`, `@tabler/icons-react`), wired in `app/providers`. Build screens from Mantine primitives and its `theme` (`shared/lib/theme.ts`) rather than hand-rolled CSS; inline `style={{}}` is for one-off layout touches only.
 - **TypeScript** is strict-ish: `noUnusedLocals`, `noUnusedParameters`, and `verbatimModuleSyntax` are on. Use `import type` for type-only imports.

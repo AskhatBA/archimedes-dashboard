@@ -1,7 +1,9 @@
 import { Center, Loader, Stack, Text } from '@mantine/core';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { OverviewScreen } from '@/screens/overview';
+import { CheckupsScreen } from '@/screens/checkups';
 import { PatientsScreen } from '@/screens/patients';
+import { ProgramOrdersScreen } from '@/screens/program-orders';
 import { PaymentScreen } from '@/screens/payment';
 import { RefundsScreen } from '@/screens/refunds';
 import { PaymentResultScreen } from '@/screens/payment-result';
@@ -52,6 +54,22 @@ export const AppRouter = () => (
       element={
         <Protected>
           <PatientsScreen />
+        </Protected>
+      }
+    />
+    <Route
+      path="/checkups"
+      element={
+        <Protected>
+          <CheckupsScreen />
+        </Protected>
+      }
+    />
+    <Route
+      path="/program-orders"
+      element={
+        <Protected>
+          <ProgramOrdersScreen />
         </Protected>
       }
     />
