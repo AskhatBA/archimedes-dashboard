@@ -93,6 +93,27 @@ along but never create or delete one.
 - The details drawer's editor is mounted under `key={order.id}` so its local state is
   rebuilt per order — otherwise a half-typed note would follow the admin to the next row.
 
+### Appointments module
+
+`src/modules/appointments` is the clinic-wide list of visits patients booked in the
+mobile app. It is read-only: the appointment itself lives in MIS, so the dashboard shows
+what was booked and the ids needed to find it there, and never mutates it — there is no
+mutation hook in this module by design.
+
+- The listing reads `GET /appointments/admin` — paginated and filtered server-side
+  (status, telemedicine flag, day range, and a search that matches patient name / IIN /
+  phone, or a MIS appointment / patient / doctor id pasted in whole).
+- `doctorName`, `doctorSpecialty` and `doctorBranch` are resolved from MIS per request and
+  come back `null` when MIS is down, so every render falls back to `doctorId`.
+- The patient columns describe the **account** that booked the visit. A visit booked for a
+  relative carries `isForFamilyMember`, shown as a badge — the name on the row is the
+  account owner's, not the person being seen.
+- The two right-hand tiles ("Сегодня", "Предстоящие") are separate queries with
+  `limit=1`, read only for their `total`: they answer what the clinic has on today, so
+  narrowing the table must not change them.
+- Day filters are sent as `YYYY-MM-DD` and the backend reads them as clinic days
+  (Asia/Almaty), which is why an evening slot stays inside a range that ends on its date.
+
 ## Conventions
 
 - **Path alias**: `@/` resolves to `src/` (configured in both `vite.config.ts` and `tsconfig.app.json`). Prefer `@/modules/foo` over deep relative paths.

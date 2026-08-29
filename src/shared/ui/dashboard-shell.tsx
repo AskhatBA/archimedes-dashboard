@@ -59,7 +59,7 @@ const navItems: NavItem[] = [
   { label: 'Обзор', icon: IconLayoutDashboard, to: '/' },
   { label: 'Пациенты', icon: IconUserHeart, to: '/patients' },
   { label: 'Врачи', icon: IconStethoscope },
-  { label: 'Приёмы', icon: IconCalendarStats, badge: '247' },
+  { label: 'Приёмы', icon: IconCalendarStats, to: '/appointments' },
   { label: 'Чек-апы', icon: IconClipboardHeart, to: '/checkups' },
   { label: 'Платные программы', icon: IconShoppingCart, to: '/program-orders' },
   { label: 'Страховые возмещения', icon: IconCash, to: '/refunds' },
@@ -231,32 +231,6 @@ export const DashboardShell = ({ title, subtitle, children }: Props) => {
               />
             ))}
           </Stack>
-        </AppShell.Section>
-        <AppShell.Section>
-          <Box
-            p="sm"
-            style={{
-              border: '1px solid var(--mantine-color-default-border)',
-              borderRadius: 'var(--mantine-radius-md)',
-            }}
-          >
-            <Group gap={8} mb={6}>
-              <Box
-                w={8}
-                h={8}
-                style={{
-                  background: 'var(--mantine-color-teal-5)',
-                  borderRadius: '50%',
-                }}
-              />
-              <Text size="xs" fw={600}>
-                Все системы в норме
-              </Text>
-            </Group>
-            <Text size="xs" c="dimmed">
-              API · OneSignal · синхронизация МИС
-            </Text>
-          </Box>
         </AppShell.Section>
       </AppShell.Navbar>
 
