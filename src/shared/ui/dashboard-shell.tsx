@@ -25,17 +25,14 @@ import {
   IconCash,
   IconClipboardHeart,
   IconChevronDown,
-  IconDeviceMobile,
   IconLayoutDashboard,
   IconLogout,
   IconMoonStars,
   IconSearch,
   IconSettings,
   IconShoppingCart,
-  IconStethoscope,
   IconSun,
   IconUserHeart,
-  IconUsers,
 } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -58,14 +55,10 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: 'Обзор', icon: IconLayoutDashboard, to: '/' },
   { label: 'Пациенты', icon: IconUserHeart, to: '/patients' },
-  { label: 'Врачи', icon: IconStethoscope },
   { label: 'Приёмы', icon: IconCalendarStats, to: '/appointments' },
   { label: 'Чек-апы', icon: IconClipboardHeart, to: '/checkups' },
   { label: 'Платные программы', icon: IconShoppingCart, to: '/program-orders' },
-  { label: 'Страховые возмещения', icon: IconCash, to: '/refunds' },
-  { label: 'Уведомления', icon: IconBell, badge: '12' },
-  { label: 'Версии приложения', icon: IconDeviceMobile },
-  { label: 'Пользователи', icon: IconUsers },
+  { label: 'Возмещения', icon: IconCash, to: '/refunds' },
 ];
 
 export const DashboardShell = ({ title, subtitle, children }: Props) => {
