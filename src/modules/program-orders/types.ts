@@ -58,6 +58,15 @@ export type ProgramOrderFilters = {
   dateTo: string | null;
 };
 
+/** How the listing is laid out. The table is the default; the board groups by status. */
+export type ProgramOrderView = 'list' | 'board';
+
+/** The board fixes `status` (one column each) and `page`, so it only carries the rest. */
+export type ProgramOrderBoardFilters = Omit<
+  ProgramOrderFilters,
+  'page' | 'limit' | 'status'
+>;
+
 /** Only these two fields are editable — amounts and programs belong to the payment. */
 export type ProgramOrderPayload = {
   status?: ProgramOrderStatus;

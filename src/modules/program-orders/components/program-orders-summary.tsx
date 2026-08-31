@@ -5,7 +5,8 @@ import { formatTenge } from '../constants';
 type Props = {
   total: number;
   totalAmount: number;
-  pageCount: number;
+  /** What is actually on screen — a page of rows in the table, four columns on the board. */
+  visibleHint: string;
   newCount: number | undefined;
 };
 
@@ -50,14 +51,14 @@ const Tile = ({
 export const ProgramOrdersSummary = ({
   total,
   totalAmount,
-  pageCount,
+  visibleHint,
   newCount,
 }: Props) => (
   <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="lg">
     <Tile
       label="Заявок по фильтру"
       value={total.toLocaleString('ru-RU')}
-      hint={`Показано ${pageCount} на странице`}
+      hint={visibleHint}
       icon={IconShoppingCart}
       color="violet"
     />

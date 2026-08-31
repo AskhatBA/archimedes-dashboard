@@ -93,6 +93,26 @@ along but never create or delete one.
 - The details drawer's editor is mounted under `key={order.id}` so its local state is
   rebuilt per order — otherwise a half-typed note would follow the admin to the next row.
 
+The same orders can also be worked as a Trello-style board (`ProgramOrdersBoard`), one
+column per status; the table stays the default and a segmented control switches between
+them. Only the visible view fetches.
+
+- The board reads one page **per column** (`useProgramOrdersBoard` → `useQueries`), because
+  the listing endpoint has no grouping mode. Each column keeps its own `limit`, so
+  "Показать ещё" reloads that column alone.
+- The status filter is hidden on the board — the columns are the statuses, so filtering by
+  one would only hide the other three.
+- Dragging a card writes `status` through the same `PATCH`. The move is applied
+  **optimistically inside the cached column pages** (`onMutate`), never as a second piece
+  of state layered over them: an overlay can show the same order in its old column and its
+  new one at once, and two cards sharing a React key knock the moved one out of dnd-kit's
+  draggable registry — after which that card can never be dragged again. `onMutate` also
+  cancels in-flight column fetches, so the refetch from the previous drop cannot land on
+  top of the next one.
+- A drop fires a trailing `click` on whatever sits under the cursor. The board swallows
+  exactly that one: a flag raised on drop and lowered by the next `pointerdown`, so a click
+  the admin actually made — which always follows a press — still opens the drawer.
+
 ### Appointments module
 
 `src/modules/appointments` is the clinic-wide list of visits patients booked in the

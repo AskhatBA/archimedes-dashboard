@@ -11,16 +11,27 @@ import {
 } from '@mantine/core';
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconAlertTriangle, IconMoodEmpty } from '@tabler/icons-react';
-import { PROGRAM_ORDER_PAGE_SIZE } from './constants';
+import {
+  PROGRAM_ORDER_BOARD_COLUMN_SIZE,
+  PROGRAM_ORDER_BOARD_INITIAL_LIMITS,
+  PROGRAM_ORDER_PAGE_SIZE,
+} from './constants';
 import { ProgramOrderDetailsDrawer } from './components/program-order-details-drawer';
+import { ProgramOrdersBoard } from './components/program-orders-board';
 import { ProgramOrdersFilters } from './components/program-orders-filters';
 import { ProgramOrdersSummary } from './components/program-orders-summary';
 import { ProgramOrdersTable } from './components/program-orders-table';
 import {
   useNewProgramOrdersCount,
   useProgramOrders,
+  useProgramOrdersBoard,
 } from './hooks/use-program-orders';
-import type { ProgramOrder, ProgramOrderFilters } from './types';
+import type {
+  ProgramOrder,
+  ProgramOrderFilters,
+  ProgramOrderStatus,
+  ProgramOrderView,
+} from './types';
 
 /** Everything except `search`, which lives in its own debounced input state. */
 type FilterState = Omit<ProgramOrderFilters, 'search'>;
@@ -35,16 +46,32 @@ const initialFilters: FilterState = {
 };
 
 export const ProgramOrders = () => {
+  const [view, setView] = useState<ProgramOrderView>('list');
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [searchInput, setSearchInput] = useState('');
   const [selected, setSelected] = useState<ProgramOrder | null>(null);
+  // How many cards each column has asked for. Per status, so "Показать ещё" in one
+  // column does not re-fetch the other three.
+  const [boardLimits, setBoardLimits] = useState(PROGRAM_ORDER_BOARD_INITIAL_LIMITS);
   // Typing must not fire a request per keystroke, so the query reads the debounced
   // value rather than the raw input.
   const [debouncedSearch] = useDebouncedValue(searchInput, 350);
-  const { data, isPending, isFetching, isError, error, refetch } = useProgramOrders({
-    ...filters,
-    search: debouncedSearch.trim(),
-  });
+  const search = debouncedSearch.trim();
+  const isBoard = view === 'board';
+
+  // Only the visible view fetches — the other one would just be four (or one) requests
+  // for a screen nobody is looking at.
+  const list = useProgramOrders({ ...filters, search }, !isBoard);
+  const board = useProgramOrdersBoard(
+    {
+      search,
+      category: filters.category,
+      dateFrom: filters.dateFrom,
+      dateTo: filters.dateTo,
+    },
+    boardLimits,
+    isBoard,
+  );
   const { data: newCount } = useNewProgramOrdersCount();
 
   const patch = (next: Partial<FilterState>) =>
@@ -57,17 +84,48 @@ export const ProgramOrders = () => {
     patch({ page: 1 });
   };
 
+  const handleViewChange = (next: ProgramOrderView) => {
+    setView(next);
+    // The board has no status filter, so one left over from the table would silently
+    // apply to nothing; the table, in turn, must not open on page 4 of the old result.
+    setFilters((prev) => ({ ...prev, page: 1, status: null }));
+    setBoardLimits(PROGRAM_ORDER_BOARD_INITIAL_LIMITS);
+  };
+
+  const handleLoadMore = (status: ProgramOrderStatus) =>
+    setBoardLimits((prev) => ({
+      ...prev,
+      [status]: prev[status] + PROGRAM_ORDER_BOARD_COLUMN_SIZE,
+    }));
+
   const reset = () => {
     setSearchInput('');
     setFilters(initialFilters);
+    setBoardLimits(PROGRAM_ORDER_BOARD_INITIAL_LIMITS);
   };
+
+  // The board's four columns cover the same filtered set the table pages through, so the
+  // tiles add up to the same figures either way.
+  const boardTotal = board.columns.reduce((sum, column) => sum + column.total, 0);
+  const boardAmount = board.columns.reduce((sum, column) => sum + column.totalAmount, 0);
+  const boardLoaded = board.columns.reduce((sum, column) => sum + column.items.length, 0);
+
+  const isPending = isBoard ? board.isPending : list.isPending;
+  const isError = isBoard ? board.isError : list.isError;
+  const error = isBoard ? board.error : list.error;
+  const refetch = isBoard ? board.refetch : list.refetch;
+  const isEmpty = isBoard ? boardTotal === 0 : list.data?.items.length === 0;
 
   return (
     <Stack gap="lg">
       <ProgramOrdersSummary
-        total={data?.total ?? 0}
-        totalAmount={data?.totalAmount ?? 0}
-        pageCount={data?.items.length ?? 0}
+        total={isBoard ? boardTotal : (list.data?.total ?? 0)}
+        totalAmount={isBoard ? boardAmount : (list.data?.totalAmount ?? 0)}
+        visibleHint={
+          isBoard
+            ? `Загружено ${boardLoaded} на доске`
+            : `Показано ${list.data?.items.length ?? 0} на странице`
+        }
         newCount={newCount}
       />
 
@@ -79,6 +137,8 @@ export const ProgramOrders = () => {
             onSearchInput={handleSearchInput}
             onChange={patch}
             onReset={reset}
+            view={view}
+            onViewChange={handleViewChange}
           />
 
           {isError && (
@@ -112,7 +172,7 @@ export const ProgramOrders = () => {
             </Center>
           )}
 
-          {!isPending && !isError && data && data.items.length === 0 && (
+          {!isPending && !isError && isEmpty && (
             <Center mih={220}>
               <Stack align="center" gap={6}>
                 <IconMoodEmpty size={32} opacity={0.4} />
@@ -123,17 +183,25 @@ export const ProgramOrders = () => {
             </Center>
           )}
 
-          {!isPending && data && data.items.length > 0 && (
-            <Stack gap="md" style={{ opacity: isFetching ? 0.6 : 1 }}>
-              <ProgramOrdersTable items={data.items} onSelect={setSelected} />
+          {!isPending && !isEmpty && isBoard && (
+            <ProgramOrdersBoard
+              columns={board.columns}
+              onSelect={setSelected}
+              onLoadMore={handleLoadMore}
+            />
+          )}
+
+          {!isPending && !isBoard && list.data && list.data.items.length > 0 && (
+            <Stack gap="md" style={{ opacity: list.isFetching ? 0.6 : 1 }}>
+              <ProgramOrdersTable items={list.data.items} onSelect={setSelected} />
               <Group justify="space-between" wrap="wrap">
                 <Text size="sm" c="dimmed">
-                  Страница {data.page} из {data.totalPages} · всего{' '}
-                  {data.total.toLocaleString('ru-RU')}
+                  Страница {list.data.page} из {list.data.totalPages} · всего{' '}
+                  {list.data.total.toLocaleString('ru-RU')}
                 </Text>
                 <Pagination
-                  value={data.page}
-                  total={data.totalPages}
+                  value={list.data.page}
+                  total={list.data.totalPages}
                   onChange={(page) => patch({ page })}
                   color="violet"
                   radius="md"

@@ -1,5 +1,5 @@
-import { Button, Group, Select, TextInput } from '@mantine/core';
-import { IconSearch, IconX } from '@tabler/icons-react';
+import { Button, Group, SegmentedControl, Select, TextInput } from '@mantine/core';
+import { IconLayoutColumns, IconList, IconSearch, IconX } from '@tabler/icons-react';
 import {
   PROGRAM_ORDER_CATEGORY_OPTIONS,
   PROGRAM_ORDER_STATUS_OPTIONS,
@@ -8,6 +8,7 @@ import type {
   ProgramOrderCategory,
   ProgramOrderFilters,
   ProgramOrderStatus,
+  ProgramOrderView,
 } from '../types';
 
 type FilterState = Omit<ProgramOrderFilters, 'search'>;
@@ -18,6 +19,8 @@ type Props = {
   onSearchInput: (value: string) => void;
   onChange: (patch: Partial<FilterState>) => void;
   onReset: () => void;
+  view: ProgramOrderView;
+  onViewChange: (view: ProgramOrderView) => void;
 };
 
 const hasAnyFilter = (filters: FilterState, searchInput: string) =>
@@ -35,6 +38,8 @@ export const ProgramOrdersFilters = ({
   onSearchInput,
   onChange,
   onReset,
+  view,
+  onViewChange,
 }: Props) => (
   <Group gap="sm" align="flex-end" wrap="wrap">
     <TextInput
@@ -46,18 +51,22 @@ export const ProgramOrdersFilters = ({
       radius="md"
       w={280}
     />
-    <Select
-      label="Статус"
-      placeholder="Все статусы"
-      data={PROGRAM_ORDER_STATUS_OPTIONS}
-      value={filters.status}
-      onChange={(value) =>
-        onChange({ status: (value as ProgramOrderStatus | null) ?? null, page: 1 })
-      }
-      clearable
-      radius="md"
-      w={180}
-    />
+    {/* On the board the columns *are* the statuses, so a status filter there would only
+        let the admin hide three of the four columns. */}
+    {view === 'list' && (
+      <Select
+        label="Статус"
+        placeholder="Все статусы"
+        data={PROGRAM_ORDER_STATUS_OPTIONS}
+        value={filters.status}
+        onChange={(value) =>
+          onChange({ status: (value as ProgramOrderStatus | null) ?? null, page: 1 })
+        }
+        clearable
+        radius="md"
+        w={180}
+      />
+    )}
     <Select
       label="Категория"
       placeholder="Все категории"
@@ -97,5 +106,31 @@ export const ProgramOrdersFilters = ({
         Сбросить
       </Button>
     )}
+    <SegmentedControl
+      ml="auto"
+      radius="md"
+      value={view}
+      onChange={(value) => onViewChange(value as ProgramOrderView)}
+      data={[
+        {
+          value: 'list',
+          label: (
+            <Group gap={6} wrap="nowrap" justify="center">
+              <IconList size={16} />
+              <span>Список</span>
+            </Group>
+          ),
+        },
+        {
+          value: 'board',
+          label: (
+            <Group gap={6} wrap="nowrap" justify="center">
+              <IconLayoutColumns size={16} />
+              <span>Доска</span>
+            </Group>
+          ),
+        },
+      ]}
+    />
   </Group>
 );
