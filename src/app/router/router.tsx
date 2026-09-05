@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { OverviewScreen } from '@/screens/overview';
 import { AppointmentsScreen } from '@/screens/appointments';
 import { CheckupsScreen } from '@/screens/checkups';
+import { MedAccountScreen } from '@/screens/med-account';
 import { PatientsScreen } from '@/screens/patients';
 import { ProgramOrdersScreen } from '@/screens/program-orders';
 import { PaymentScreen } from '@/screens/payment';
@@ -71,6 +72,14 @@ export const AppRouter = () => (
       element={
         <Protected>
           <CheckupsScreen />
+        </Protected>
+      }
+    />
+    <Route
+      path="/med-account"
+      element={
+        <Protected>
+          <MedAccountScreen />
         </Protected>
       }
     />

@@ -134,6 +134,41 @@ mutation hook in this module by design.
 - Day filters are sent as `YYYY-MM-DD` and the backend reads them as clinic days
   (Asia/Almaty), which is why an evening slot stays inside a range that ends on its date.
 
+### Medical-account module
+
+`src/modules/med-account` is both halves of the "медсчёт" feature behind one segmented
+control, because they are two sides of the same thing and neither fills a screen alone.
+Only the visible view fetches, so switching does not keep both listings warm.
+
+**Суммы пополнения** is a catalogue editor built exactly like `checkups`: one `useQuery`
+for `GET /med-account/options/admin` (which, unlike the app-facing `GET
+/med-account/options`, includes unpublished rows) plus mutations that all invalidate
+`['med-account-options']`. Publishing is an `isActive` flag rather than a delete, and
+`amount` is unique on the backend — a collision comes back as `409`
+`MED_ACCOUNT_OPTION_AMOUNT_TAKEN`, which `resolveMedAccountErrorMessage` turns into the
+message shown in the form. Deleting an amount does **not** touch the top-ups bought at it:
+they snapshot their own amount, which is what the delete modal says.
+
+**Пополнения** is an operator queue, not an editor: a top-up is created by the backend when
+a payment settles, so the dashboard moves it along but never creates or deletes one.
+
+- The listing reads `GET /med-account/topups/admin` — paginated and filtered server-side
+  (status, and a search matching patient name / IIN / phone). `totalAmount` covers the
+  whole filtered set, which is what the summary tile shows.
+- The "Ждут зачисления" tile is a *separate* query pinned to `status=PENDING` with
+  `limit=1`, read only for its `total`: it is the queue an operator works down, so
+  narrowing the table must not change it.
+- `PATCH /med-account/topups/admin/:id` is the only write, and only `status` and `comment`
+  go through it — the amount belongs to the payment behind the top-up.
+- The details drawer's editor is mounted under `key={topup.id}` so its local state is
+  rebuilt per row — otherwise a half-typed note would follow the operator to the next one.
+
+Why the queue exists at all: the medical account lives in the **insurer's** system and
+their API has no endpoint to credit it yet, so `CREDITED` means a human has posted the
+money there. A row with no `beneficiaryId` is badged "без ID" — MIS did not resolve the
+patient when the payment settled, and there is nothing for the insurer's system to be
+credited against until someone looks it up.
+
 ## Conventions
 
 - **Path alias**: `@/` resolves to `src/` (configured in both `vite.config.ts` and `tsconfig.app.json`). Prefer `@/modules/foo` over deep relative paths.

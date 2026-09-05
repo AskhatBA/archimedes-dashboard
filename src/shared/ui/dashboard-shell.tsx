@@ -33,6 +33,7 @@ import {
   IconShoppingCart,
   IconSun,
   IconUserHeart,
+  IconWallet,
 } from '@tabler/icons-react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useLocation, useNavigate } from 'react-router-dom';
@@ -58,6 +59,7 @@ const navItems: NavItem[] = [
   { label: 'Приёмы', icon: IconCalendarStats, to: '/appointments' },
   { label: 'Чек-апы', icon: IconClipboardHeart, to: '/checkups' },
   { label: 'Платные программы', icon: IconShoppingCart, to: '/program-orders' },
+  { label: 'Медсчёт', icon: IconWallet, to: '/med-account' },
   { label: 'Возмещения', icon: IconCash, to: '/refunds' },
 ];
 
