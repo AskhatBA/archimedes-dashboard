@@ -12,6 +12,9 @@ import {
   APPOINTMENT_STATUS_COLORS,
   APPOINTMENT_STATUS_HINTS,
   APPOINTMENT_STATUS_LABELS,
+  formatAmount,
+  PAYMENT_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
 } from '../constants';
 import type { Appointment } from '../types';
 
@@ -28,6 +31,62 @@ const Field = ({ label, value }: { label: string; value: string }) => (
     <Text size="sm">{value}</Text>
   </Stack>
 );
+
+/**
+ * Деньги за приём.
+ *
+ * Платный приём бронируется обработчиком успешной оплаты, поэтому за ним всегда стоит
+ * конкретная транзакция — её сумма, состояние и id, по которому платёж находят в кабинете
+ * FreedomPay. У приёма по программе платит страховая, и показывать здесь нечего.
+ */
+const PaymentSection = ({ appointment }: { appointment: Appointment }) => {
+  const { payment } = appointment;
+
+  if (!payment) {
+    return (
+      <Stack gap={2}>
+        <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+          Оплата
+        </Text>
+        <Text size="sm">По программе страхования</Text>
+        <Text size="xs" c="dimmed">
+          Пациент за приём не платил — нашей транзакции за ним нет.
+        </Text>
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack gap="md">
+      <Group justify="space-between" align="center" wrap="nowrap">
+        <Stack gap={2}>
+          <Text size="xs" c="dimmed" tt="uppercase" fw={600}>
+            Оплата картой
+          </Text>
+          <Text size="lg" fw={700}>
+            {formatAmount(payment.amount)}
+          </Text>
+        </Stack>
+        <Badge color={PAYMENT_STATUS_COLORS[payment.status]} variant="light" size="lg">
+          {PAYMENT_STATUS_LABELS[payment.status]}
+        </Badge>
+      </Group>
+      {!appointment.isPaid && (
+        <Text size="xs" c="red">
+          Приём связан с платежом, который не прошёл, — стоит сверить с кабинетом FreedomPay.
+        </Text>
+      )}
+      <Field label="Назначение" value={payment.description} />
+      <Field
+        label="Дата платежа"
+        value={dayjs(payment.createdAt).format('D MMMM YYYY, HH:mm')}
+      />
+      <Field label="ID платежа" value={payment.id} />
+      {/* То, по чему платёж ищут в кабинете мерчанта. */}
+      <Field label="ID транзакции FreedomPay" value={payment.pgPaymentId ?? '—'} />
+    </Stack>
+  );
+};
 
 /**
  * Read-only by design: the visit itself lives in MIS, so moving or cancelling it here
@@ -99,6 +158,10 @@ const AppointmentDetails = ({ appointment }: { appointment: Appointment }) => (
       label="Создан"
       value={dayjs(appointment.createdAt).format('D MMMM YYYY, HH:mm')}
     />
+
+    <Divider />
+
+    <PaymentSection appointment={appointment} />
 
     <Divider />
 

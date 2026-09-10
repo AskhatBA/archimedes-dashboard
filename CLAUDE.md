@@ -121,8 +121,15 @@ what was booked and the ids needed to find it there, and never mutates it — th
 mutation hook in this module by design.
 
 - The listing reads `GET /appointments/admin` — paginated and filtered server-side
-  (status, telemedicine flag, day range, and a search that matches patient name / IIN /
-  phone, or a MIS appointment / patient / doctor id pasted in whole).
+  (status, telemedicine flag, payment, day range, and a search that matches patient name /
+  IIN / phone, or a MIS appointment / patient / doctor id pasted in whole).
+- The "Оплата" column says whether the visit was paid for by card. A paid visit carries
+  its `payment` — amount, status, and the FreedomPay `pgPaymentId` the drawer shows so an
+  operator can find the transaction in the merchant cabinet; `payment: null` is a visit
+  booked through an insurance programme, where the insurer paid and there is no
+  transaction of ours. `isPaid` is narrower than `payment !== null` — it also requires the
+  payment to have succeeded — so a row with a payment that is *not* `SUCCESS` is rendered
+  as the discrepancy it is rather than as a paid visit.
 - `doctorName`, `doctorSpecialty` and `doctorBranch` are resolved from MIS per request and
   come back `null` when MIS is down, so every render falls back to `doctorId`.
 - The patient columns describe the **account** that booked the visit. A visit booked for a

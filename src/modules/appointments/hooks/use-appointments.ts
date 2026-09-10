@@ -11,6 +11,7 @@ const listParams = (filters: AppointmentFilters) => ({
   ...(filters.search ? { search: filters.search } : {}),
   ...(filters.status ? { status: filters.status } : {}),
   ...(filters.telemedicine === null ? {} : { telemedicine: filters.telemedicine }),
+  ...(filters.paid === null ? {} : { paid: filters.paid }),
   ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
   ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
 });

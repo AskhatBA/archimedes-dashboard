@@ -2,6 +2,7 @@ import { Button, Group, Select, TextInput } from '@mantine/core';
 import { IconSearch, IconX } from '@tabler/icons-react';
 import {
   APPOINTMENT_FORMAT_OPTIONS,
+  APPOINTMENT_PAYMENT_OPTIONS,
   APPOINTMENT_STATUS_OPTIONS,
 } from '../constants';
 import type { AppointmentFilters, AppointmentStatus } from '../types';
@@ -21,6 +22,7 @@ const hasAnyFilter = (filters: FilterState, searchInput: string) =>
     searchInput ||
       filters.status !== null ||
       filters.telemedicine !== null ||
+      filters.paid !== null ||
       filters.dateFrom ||
       filters.dateTo,
   );
@@ -62,6 +64,19 @@ export const AppointmentsFilters = ({
       value={filters.telemedicine === null ? null : String(filters.telemedicine)}
       onChange={(value) =>
         onChange({ telemedicine: value === null ? null : value === 'true', page: 1 })
+      }
+      clearable
+      radius="md"
+      w={180}
+    />
+    <Select
+      label="Оплата"
+      placeholder="Любая оплата"
+      data={APPOINTMENT_PAYMENT_OPTIONS}
+      // Tri-state, like the format filter: cleared means «любая», not «по программе».
+      value={filters.paid === null ? null : String(filters.paid)}
+      onChange={(value) =>
+        onChange({ paid: value === null ? null : value === 'true', page: 1 })
       }
       clearable
       radius="md"

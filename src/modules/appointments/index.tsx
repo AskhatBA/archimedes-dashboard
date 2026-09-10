@@ -31,6 +31,7 @@ const initialFilters: FilterState = {
   limit: APPOINTMENT_PAGE_SIZE,
   status: null,
   telemedicine: null,
+  paid: null,
   dateFrom: null,
   dateTo: null,
 };

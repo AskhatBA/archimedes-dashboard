@@ -1,4 +1,4 @@
-import type { AppointmentStatus } from './types';
+import type { AppointmentPaymentStatus, AppointmentStatus } from './types';
 
 export const APPOINTMENT_STATUS_LABELS: Record<AppointmentStatus, string> = {
   SCHEDULED: 'Запланирован',
@@ -27,6 +27,35 @@ export const APPOINTMENT_FORMAT_OPTIONS = [
   { value: 'true', label: 'Телемедицина' },
   { value: 'false', label: 'Очный приём' },
 ];
+
+/** Same tri-state shape as the format filter — cleared means «любая оплата». */
+export const APPOINTMENT_PAYMENT_OPTIONS = [
+  { value: 'true', label: 'Оплачен картой' },
+  { value: 'false', label: 'По программе' },
+];
+
+/**
+ * Состояние транзакции за приём.
+ *
+ * У приёма, забронированного как платный, платёж всегда `SUCCESS` — приём и создаётся-то
+ * обработчиком успешной оплаты. Остальные значения означают расхождение, которое стоит
+ * показать, а не спрятать.
+ */
+export const PAYMENT_STATUS_LABELS: Record<AppointmentPaymentStatus, string> = {
+  SUCCESS: 'Оплачен',
+  PENDING: 'Ожидает оплаты',
+  FAILED: 'Не прошёл',
+  CANCELLED: 'Отменён плательщиком',
+};
+
+export const PAYMENT_STATUS_COLORS: Record<AppointmentPaymentStatus, string> = {
+  SUCCESS: 'teal',
+  PENDING: 'yellow',
+  FAILED: 'red',
+  CANCELLED: 'gray',
+};
+
+export const formatAmount = (amount: number) => `₸${amount.toLocaleString('ru-RU')}`;
 
 export const APPOINTMENT_PAGE_SIZE = 20;
 

@@ -1,10 +1,18 @@
 import { Badge, Group, ScrollArea, Stack, Table, Text, Tooltip } from '@mantine/core';
-import { IconDeviceLaptop, IconBuildingHospital } from '@tabler/icons-react';
+import {
+  IconCreditCard,
+  IconDeviceLaptop,
+  IconBuildingHospital,
+  IconShieldCheck,
+} from '@tabler/icons-react';
 import dayjs from 'dayjs';
 import {
   APPOINTMENT_STATUS_COLORS,
   APPOINTMENT_STATUS_HINTS,
   APPOINTMENT_STATUS_LABELS,
+  formatAmount,
+  PAYMENT_STATUS_COLORS,
+  PAYMENT_STATUS_LABELS,
 } from '../constants';
 import type { Appointment } from '../types';
 
@@ -17,15 +25,60 @@ type Props = {
 const doctorLabel = (appointment: Appointment) =>
   appointment.doctorName ?? `Врач ${appointment.doctorId.slice(0, 8)}`;
 
+/**
+ * Оплата приёма одной ячейкой.
+ *
+ * Три случая, а не два: за приёмом либо стоит успешная транзакция, либо его оплатила
+ * страховая, либо — редкий случай — платёж есть, но он не успешный. Последнее прятать
+ * нельзя: это расхождение, за которым идут разбираться.
+ */
+const PaymentCell = ({ appointment }: { appointment: Appointment }) => {
+  const { payment, isPaid } = appointment;
+
+  if (!payment) {
+    return (
+      <Tooltip label="Приём по программе страхования — нашей транзакции за ним нет">
+        <Badge variant="light" color="gray" leftSection={<IconShieldCheck size={12} />}>
+          По программе
+        </Badge>
+      </Tooltip>
+    );
+  }
+
+  return (
+    <Stack gap={2} align="flex-start">
+      <Tooltip
+        label={
+          isPaid
+            ? 'Пациент оплатил приём картой при бронировании'
+            : `Платёж за приём: ${PAYMENT_STATUS_LABELS[payment.status]}`
+        }
+      >
+        <Badge
+          variant="light"
+          color={PAYMENT_STATUS_COLORS[payment.status]}
+          leftSection={<IconCreditCard size={12} />}
+        >
+          {isPaid ? 'Картой' : PAYMENT_STATUS_LABELS[payment.status]}
+        </Badge>
+      </Tooltip>
+      <Text size="xs" c="dimmed">
+        {formatAmount(payment.amount)}
+      </Text>
+    </Stack>
+  );
+};
+
 export const AppointmentsTable = ({ items, onSelect }: Props) => (
   <ScrollArea>
-    <Table verticalSpacing="sm" highlightOnHover miw={960}>
+    <Table verticalSpacing="sm" highlightOnHover miw={1080}>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Дата и время</Table.Th>
           <Table.Th>Пациент</Table.Th>
           <Table.Th>Врач</Table.Th>
           <Table.Th>Формат</Table.Th>
+          <Table.Th>Оплата</Table.Th>
           <Table.Th>Статус</Table.Th>
         </Table.Tr>
       </Table.Thead>
@@ -87,6 +140,9 @@ export const AppointmentsTable = ({ items, onSelect }: Props) => (
               >
                 {appointment.isTelemedicine ? 'Телемед' : 'Очный'}
               </Badge>
+            </Table.Td>
+            <Table.Td>
+              <PaymentCell appointment={appointment} />
             </Table.Td>
             <Table.Td>
               <Tooltip label={APPOINTMENT_STATUS_HINTS[appointment.status]}>
