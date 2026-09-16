@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Avatar,
   Badge,
   Group,
@@ -6,14 +7,27 @@ import {
   Stack,
   Table,
   Text,
+  Tooltip,
 } from '@mantine/core';
-import { IconCalendarStats, IconCash } from '@tabler/icons-react';
+import {
+  IconCalendarStats,
+  IconCash,
+  IconPencil,
+  IconTrash,
+} from '@tabler/icons-react';
 import dayjs from 'dayjs';
-import { PATIENT_GENDER_COLORS, genderLabel, isKnownGender } from '../constants';
+import {
+  PATIENT_GENDER_COLORS,
+  formatPhone,
+  genderLabel,
+  isKnownGender,
+} from '../constants';
 import type { Patient } from '../types';
 
 type Props = {
   items: Patient[];
+  onEdit: (patient: Patient) => void;
+  onDelete: (patient: Patient) => void;
 };
 
 /** `Иванов Иван` -> `ИИ`. Falls back to a single letter for one-word names. */
@@ -50,17 +64,9 @@ const formatBirthDate = (birthDate: string) => {
   return date.isValid() ? date.format('D MMM YYYY') : birthDate;
 };
 
-/** `87775710058` -> `+7 777 571 00 58`; anything unexpected is shown as stored. */
-const formatPhone = (phone: string) => {
-  const digits = phone.replace(/\D/g, '');
-  if (digits.length !== 11) return phone;
-
-  return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9)}`;
-};
-
-export const PatientsTable = ({ items }: Props) => (
+export const PatientsTable = ({ items, onEdit, onDelete }: Props) => (
   <ScrollArea>
-    <Table verticalSpacing="sm" highlightOnHover miw={900}>
+    <Table verticalSpacing="sm" highlightOnHover miw={980}>
       <Table.Thead>
         <Table.Tr>
           <Table.Th>Пациент</Table.Th>
@@ -70,6 +76,7 @@ export const PatientsTable = ({ items }: Props) => (
           <Table.Th>Телефон</Table.Th>
           <Table.Th ta="right">Приёмы</Table.Th>
           <Table.Th ta="right">Возмещения</Table.Th>
+          <Table.Th />
         </Table.Tr>
       </Table.Thead>
       <Table.Tbody>
@@ -137,6 +144,30 @@ export const PatientsTable = ({ items }: Props) => (
               <Group gap={6} justify="flex-end">
                 <IconCash size={14} opacity={0.6} />
                 <Text size="sm">{patient.refundsCount}</Text>
+              </Group>
+            </Table.Td>
+            <Table.Td>
+              <Group gap={4} justify="flex-end" wrap="nowrap">
+                <Tooltip label="Редактировать">
+                  <ActionIcon
+                    variant="subtle"
+                    color="violet"
+                    onClick={() => onEdit(patient)}
+                    aria-label="Редактировать"
+                  >
+                    <IconPencil size={16} />
+                  </ActionIcon>
+                </Tooltip>
+                <Tooltip label="Удалить профиль">
+                  <ActionIcon
+                    variant="subtle"
+                    color="red"
+                    onClick={() => onDelete(patient)}
+                    aria-label="Удалить профиль"
+                  >
+                    <IconTrash size={16} />
+                  </ActionIcon>
+                </Tooltip>
               </Group>
             </Table.Td>
           </Table.Tr>

@@ -141,6 +141,24 @@ mutation hook in this module by design.
 - Day filters are sent as `YYYY-MM-DD` and the backend reads them as clinic days
   (Asia/Almaty), which is why an evening slot stays inside a range that ends on its date.
 
+### Patients module
+
+`src/modules/patients` lists every patient profile (`GET /patient/admin/patients`, paginated
+and filtered server-side) and is also where an admin corrects or removes one. Both writes
+invalidate the whole `['patients']` key, since every page/filter combination is cached
+separately.
+
+- The edit drawer changes only **ФИО and ИИН**, and sends only the fields that actually
+  changed. The phone is shown disabled: it is the patient's login, and the backend refuses to
+  change it. Typing an IIN strips everything but digits.
+- A changed IIN re-links the profile to its MIS patient on the backend, so the drawer warns
+  about it before saving. An IIN MIS does not know (or MIS being down) comes back as
+  `MIS_PATIENT_NOT_FOUND`, a duplicate as `PATIENT_IIN_TAKEN` / `PATIENT_MIS_PATIENT_TAKEN`;
+  `resolvePatientErrorMessage` (in `data.ts`) turns those into the message in the form.
+- Deleting removes the **profile only**. The account behind it — phone, appointments,
+  payments, orders — stays, and the person can sign in and fill in a profile again; the
+  delete modal says so, because "удалить пациента" otherwise reads as deleting the account.
+
 ### Medical-account module
 
 `src/modules/med-account` is both halves of the "медсчёт" feature behind one segmented

@@ -1,6 +1,17 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { axiosInstance } from '@/api';
-import type { PatientFilters, PatientListResponse } from '../types';
+import type {
+  Patient,
+  PatientFilters,
+  PatientListResponse,
+  PatientResponse,
+  PatientUpdatePayload,
+} from '../types';
 
 /**
  * Reads the admin-wide patient listing. The endpoint is role-gated on the backend, so a
@@ -28,3 +39,41 @@ export const usePatients = (filters: PatientFilters) =>
     // jumps; keeping the previous page visible makes paging feel instant.
     placeholderData: keepPreviousData,
   });
+
+/**
+ * Every write refetches the whole `['patients']` key — each page and filter combination
+ * is cached separately, and an edited name or IIN can move a row between them.
+ */
+const useInvalidatePatients = () => {
+  const queryClient = useQueryClient();
+
+  return () => queryClient.invalidateQueries({ queryKey: ['patients'] });
+};
+
+export const useUpdatePatient = () => {
+  const invalidate = useInvalidatePatients();
+
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: PatientUpdatePayload }) => {
+      const { data } = await axiosInstance.patch<PatientResponse>(
+        `/patient/admin/patients/${id}`,
+        payload,
+      );
+
+      return data.patient;
+    },
+    onSuccess: invalidate,
+  });
+};
+
+/** Deletes the patient profile only — the account behind it (phone, history) stays. */
+export const useDeletePatient = () => {
+  const invalidate = useInvalidatePatients();
+
+  return useMutation({
+    mutationFn: async (patient: Patient) => {
+      await axiosInstance.delete(`/patient/admin/patients/${patient.id}`);
+    },
+    onSuccess: invalidate,
+  });
+};

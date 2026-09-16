@@ -33,3 +33,26 @@ export type PatientFilters = {
   search: string;
   gender: PatientGender | null;
 };
+
+export type PatientResponse = {
+  success: boolean;
+  patient: Patient;
+};
+
+/**
+ * What `PATCH /patient/admin/patients/:id` accepts — any subset of it. The phone is not
+ * here on purpose: it is the account's login, and the backend refuses to change it.
+ */
+export type PatientUpdatePayload = {
+  firstName?: string;
+  lastName?: string;
+  patronymic?: string;
+  iin?: string;
+};
+
+export type PatientFormValues = {
+  lastName: string;
+  firstName: string;
+  patronymic: string;
+  iin: string;
+};

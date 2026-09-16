@@ -22,3 +22,11 @@ export const isKnownGender = (gender: string): gender is PatientGender =>
 
 export const genderLabel = (gender: string) =>
   isKnownGender(gender) ? PATIENT_GENDER_LABELS[gender] : gender;
+
+/** `87775710058` -> `+7 777 571 00 58`; anything unexpected is shown as stored. */
+export const formatPhone = (phone: string) => {
+  const digits = phone.replace(/\D/g, '');
+  if (digits.length !== 11) return phone;
+
+  return `+7 ${digits.slice(1, 4)} ${digits.slice(4, 7)} ${digits.slice(7, 9)} ${digits.slice(9)}`;
+};

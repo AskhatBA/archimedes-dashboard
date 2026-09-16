@@ -12,10 +12,12 @@ import {
 import { useDebouncedValue } from '@mantine/hooks';
 import { IconAlertTriangle, IconMoodEmpty } from '@tabler/icons-react';
 import { PATIENT_PAGE_SIZE } from './constants';
+import { DeletePatientModal } from './components/delete-patient-modal';
+import { PatientFormDrawer } from './components/patient-form-drawer';
 import { PatientsFilters } from './components/patients-filters';
 import { PatientsTable } from './components/patients-table';
 import { usePatients } from './hooks/use-patients';
-import type { PatientFilters } from './types';
+import type { Patient, PatientFilters } from './types';
 
 /** Everything except `search`, which lives in its own debounced input state. */
 type FilterState = Omit<PatientFilters, 'search'>;
@@ -29,6 +31,10 @@ const initialFilters: FilterState = {
 export const Patients = () => {
   const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [searchInput, setSearchInput] = useState('');
+  // Kept after the drawer closes, so its fields do not blank out mid close-animation.
+  const [editing, setEditing] = useState<Patient | null>(null);
+  const [formOpen, setFormOpen] = useState(false);
+  const [deleting, setDeleting] = useState<Patient | null>(null);
   // Typing must not fire a request per keystroke, so the query reads the debounced
   // value rather than the raw input.
   const [debouncedSearch] = useDebouncedValue(searchInput, 350);
@@ -45,6 +51,11 @@ export const Patients = () => {
     // A new search always restarts at page 1 — otherwise narrowing the result set
     // lands the admin on an empty page 4.
     patch({ page: 1 });
+  };
+
+  const openEdit = (patient: Patient) => {
+    setEditing(patient);
+    setFormOpen(true);
   };
 
   const reset = () => {
@@ -107,7 +118,11 @@ export const Patients = () => {
 
         {!isPending && data && data.items.length > 0 && (
           <Stack gap="md" style={{ opacity: isFetching ? 0.6 : 1 }}>
-            <PatientsTable items={data.items} />
+            <PatientsTable
+              items={data.items}
+              onEdit={openEdit}
+              onDelete={setDeleting}
+            />
             <Group justify="space-between" wrap="wrap">
               <Text size="sm" c="dimmed">
                 Страница {data.page} из {data.totalPages} · всего{' '}
@@ -125,6 +140,13 @@ export const Patients = () => {
           </Stack>
         )}
       </Stack>
+
+      <PatientFormDrawer
+        opened={formOpen}
+        patient={editing}
+        onClose={() => setFormOpen(false)}
+      />
+      <DeletePatientModal patient={deleting} onClose={() => setDeleting(null)} />
     </Card>
   );
 };
