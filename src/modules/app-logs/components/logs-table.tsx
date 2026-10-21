@@ -46,6 +46,12 @@ const Event = ({ line }: { line: AppLogLine }) => {
             · {error.message}
           </Text>
         )}
+        {error?.cause && (
+          <Text span size="xs" c="red">
+            {' '}
+            ({error.cause})
+          </Text>
+        )}
       </Text>
     </Stack>
   );

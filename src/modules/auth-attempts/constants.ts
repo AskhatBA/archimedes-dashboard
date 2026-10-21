@@ -72,6 +72,7 @@ const REASON_LABELS: Record<string, string> = {
   PIN_NOT_SET: 'PIN не установлен',
   SESSION_REPLACED: 'Вошли с другого устройства',
   REFRESH_TOKEN_REVOKED: 'Сессия отозвана',
+  INSURANCE_UNAVAILABLE: 'Страховая не ответила',
   UNKNOWN_ERROR: 'Ошибка внешнего сервиса',
   UNHANDLED: 'Непредвиденная ошибка сервера',
 };

@@ -105,6 +105,7 @@ const RequestTimeline = ({
               {entry.component ? `[${entry.component}] ` : ''}
               {messageHint(entry.msg) ?? entry.msg}
               {errorOf(entry)?.message ? ` · ${errorOf(entry)?.message}` : ''}
+              {errorOf(entry)?.cause ? ` (${errorOf(entry)?.cause})` : ''}
             </Text>
           </Group>
         </UnstyledButton>
@@ -169,6 +170,7 @@ export const LogDetailsDrawer = ({ line, onSelect, onClose }: Props) => {
                 label="Код / сообщение"
                 value={[error.message, error.type && `(${error.type})`].filter(Boolean).join(' ')}
               />
+              {error.cause && <Field label="Причина у внешнего сервиса" value={error.cause} />}
               {error.stack && (
                 <ScrollArea.Autosize mah={220}>
                   <Code block>{error.stack}</Code>

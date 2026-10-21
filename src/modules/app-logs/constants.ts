@@ -39,15 +39,41 @@ const MESSAGE_HINTS: Record<string, string> = {
 
 export const messageHint = (msg: string | null) => (msg ? MESSAGE_HINTS[msg] : undefined);
 
-/** `err.message` from the error handler and upstream lines — the code the app received. */
+const SERVICE_LABELS: Record<string, string> = {
+  insurance: 'Страховая',
+};
+
+/**
+ * `err.message` is the code the app received; `err.details` (when an upstream caused it)
+ * is what that service actually answered — the part that explains a bare `UNKNOWN_ERROR`.
+ */
 export const errorOf = (line: AppLogLine) => {
-  const err = line.data.err as { message?: unknown; type?: unknown; stack?: unknown } | undefined;
+  const err = line.data.err as
+    | { message?: unknown; type?: unknown; stack?: unknown; details?: unknown }
+    | undefined;
 
   if (!err || typeof err !== 'object') return null;
+
+  const details =
+    err.details && typeof err.details === 'object'
+      ? (err.details as { service?: unknown; status?: unknown; message?: unknown })
+      : null;
+  const cause = details
+    ? [
+        typeof details.service === 'string'
+          ? (SERVICE_LABELS[details.service] ?? details.service)
+          : null,
+        typeof details.status === 'number' ? String(details.status) : null,
+      ]
+        .filter(Boolean)
+        .join(' ') + (typeof details.message === 'string' ? `: ${details.message}` : '')
+    : null;
 
   return {
     message: typeof err.message === 'string' ? err.message : null,
     type: typeof err.type === 'string' ? err.type : null,
     stack: typeof err.stack === 'string' ? err.stack : null,
+    /** e.g. «Страховая 404: Пользователь не найден». */
+    cause: cause || null,
   };
 };
