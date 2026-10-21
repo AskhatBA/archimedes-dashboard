@@ -27,9 +27,11 @@ import {
   IconChevronDown,
   IconLayoutDashboard,
   IconLogout,
+  IconListSearch,
   IconMoonStars,
   IconSearch,
   IconSettings,
+  IconShieldLock,
   IconShoppingCart,
   IconSun,
   IconUserHeart,
@@ -61,6 +63,8 @@ const navItems: NavItem[] = [
   { label: 'Платные программы', icon: IconShoppingCart, to: '/program-orders' },
   { label: 'Медсчёт', icon: IconWallet, to: '/med-account' },
   { label: 'Возмещения', icon: IconCash, to: '/refunds' },
+  { label: 'Попытки входа', icon: IconShieldLock, to: '/auth-attempts' },
+  { label: 'Логи', icon: IconListSearch, to: '/logs' },
 ];
 
 export const DashboardShell = ({ title, subtitle, children }: Props) => {
